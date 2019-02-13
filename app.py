@@ -1,10 +1,28 @@
 from chalice import Chalice
-import pickl
+import pickle
+from io import BytesIO
+
+import boto3
+from botocore.exceptions import ClientError
+
+S3 = boto3.client('s3', region_name='us-west-2')
+BUCKET = 'deploy-machine-learning-lambda'
 
 app = Chalice(app_name='deploy-machine-learning-lambda')
+app.debug = True
 
+
+
+s3 = boto3.resource('s3')
+with BytesIO() as data:
+    s3.Bucket("telegram-csv-storage").download_fileobj("model.pkl", data)
+    data.seek(0)    # move back to the beginning after writing
+    model = pickle.load(data)
 # Loading the machine learning model
-model = pickle.load(open("model.pkl","rb"))
+# model_url = S3.get_object(Bucket=BUCKET, Key='model.pkl')
+print(model)
+print(type(model))
+# model = pickle.load(open(pickled_model,"rb"))
 
 
 @app.route('/')
